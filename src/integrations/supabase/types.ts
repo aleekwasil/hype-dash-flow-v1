@@ -14,16 +14,248 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      funding_intents: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          reference: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          reference: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          reference?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          meta: Json
+          network: string | null
+          plan_code: string | null
+          plan_label: string | null
+          provider: string | null
+          provider_ref: string | null
+          recipient: string | null
+          reference: string
+          status: Database["public"]["Enums"]["txn_status"]
+          type: Database["public"]["Enums"]["txn_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          meta?: Json
+          network?: string | null
+          plan_code?: string | null
+          plan_label?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          recipient?: string | null
+          reference: string
+          status?: Database["public"]["Enums"]["txn_status"]
+          type: Database["public"]["Enums"]["txn_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          meta?: Json
+          network?: string | null
+          plan_code?: string | null
+          plan_label?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          recipient?: string | null
+          reference?: string
+          status?: Database["public"]["Enums"]["txn_status"]
+          type?: Database["public"]["Enums"]["txn_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_pins: {
+        Row: {
+          created_at: string
+          failed_attempts: number
+          locked_until: string | null
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          failed_attempts?: number
+          locked_until?: string | null
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          failed_attempts?: number
+          locked_until?: string | null
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vtpass_logs: {
+        Row: {
+          created_at: string
+          endpoint: string
+          http_status: number | null
+          id: string
+          reference: string | null
+          request_body: Json | null
+          response_body: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          http_status?: number | null
+          id?: string
+          reference?: string | null
+          request_body?: Json | null
+          response_body?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          http_status?: number | null
+          id?: string
+          reference?: string | null
+          request_body?: Json | null
+          response_body?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          currency: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          currency?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          currency?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      credit_wallet: {
+        Args: { _amount: number; _user_id: string }
+        Returns: number
+      }
+      debit_wallet: {
+        Args: { _amount: number; _user_id: string }
+        Returns: number
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      promote_to_admin: { Args: { _email: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      txn_status: "pending" | "success" | "failed" | "reversed"
+      txn_type: "airtime" | "data" | "wallet_funding" | "refund" | "adjustment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +382,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      txn_status: ["pending", "success", "failed", "reversed"],
+      txn_type: ["airtime", "data", "wallet_funding", "refund", "adjustment"],
+    },
   },
 } as const
