@@ -29,13 +29,13 @@ export function WalletCard({ balance }: { balance: number }) {
       <div className="relative mt-5 flex gap-2">
         <Link
           to="/fund"
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur transition hover:bg-white/25"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur transition hover:scale-[1.02] hover:bg-white/25 active:scale-[0.98]"
         >
-          <Plus className="h-4 w-4" /> Fund
+          <Plus className="h-4 w-4" /> Deposit
         </Link>
         <Link
           to="/history"
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-medium backdrop-blur transition hover:bg-white/20"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-medium backdrop-blur transition hover:scale-[1.02] hover:bg-white/20 active:scale-[0.98]"
         >
           <ArrowUpRight className="h-4 w-4" /> History
         </Link>

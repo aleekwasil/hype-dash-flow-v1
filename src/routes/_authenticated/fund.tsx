@@ -16,7 +16,7 @@ const searchSchema = z.object({ ref: z.string().optional() });
 
 export const Route = createFileRoute("/_authenticated/fund")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({ meta: [{ title: "Fund Wallet — HypeData" }] }),
+  head: () => ({ meta: [{ title: "Deposit Funds — HypeData" }] }),
   component: Fund,
 });
 
@@ -74,10 +74,11 @@ function Fund() {
   }
 
   return (
-    <AppShell title="Fund Wallet">
+    <AppShell title="Deposit Funds">
       <p className="mb-4 text-xs text-muted-foreground">
         Current balance: <span className="font-mono text-foreground">{formatNaira(wallet.data?.balance ?? 0)}</span>
       </p>
+
 
       <form onSubmit={submit} className="space-y-5">
         <div className="space-y-1.5">
@@ -98,7 +99,7 @@ function Fund() {
         </div>
 
         <Button type="submit" disabled={initMut.isPending} className="w-full bg-gradient-primary shadow-glow">
-          {initMut.isPending ? "Processing…" : "Fund Wallet"}
+          {initMut.isPending ? "Processing…" : "Deposit"}
         </Button>
 
         <p className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-center text-xs text-warning">

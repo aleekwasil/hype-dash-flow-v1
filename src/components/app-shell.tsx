@@ -1,8 +1,11 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { Home, Smartphone, Wifi, History, User } from "lucide-react";
+import { Home, Smartphone, Wifi, History, User, Shield } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { BrandLockup } from "@/components/brand-logo";
+import { isAdmin } from "@/lib/profile.functions";
 
 const TABS = [
   { to: "/dashboard", label: "Home", icon: Home },
@@ -16,11 +19,10 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const router = useRouter();
   const qc = useQueryClient();
+  const a = useServerFn(isAdmin);
+  const admin = useQuery({ queryKey: ["isAdmin"], queryFn: () => a(), staleTime: 60_000 });
 
-  // ensure clean session on protected route mount
-  useEffect(() => {
-    // nothing — _authenticated layout handles auth gate
-  }, []);
+  useEffect(() => {}, []);
 
   async function handleLogout() {
     await qc.cancelQueries();
@@ -32,18 +34,24 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background pb-24">
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/50 bg-background/80 px-4 py-3 backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-primary shadow-glow">
-            <span className="text-sm font-bold text-primary-foreground">H</span>
-          </div>
-          <span className="font-display text-lg font-bold tracking-tight">{title ?? "HypeData"}</span>
+        {title ? (
+          <span className="font-display text-lg font-bold tracking-tight">{title}</span>
+        ) : (
+          <BrandLockup size={32} />
+        )}
+        <div className="flex items-center gap-1">
+          {admin.data?.isAdmin && (
+            <Link to="/admin" className="rounded-md p-1.5 text-primary transition hover:bg-primary/10" aria-label="Admin">
+              <Shield className="h-4 w-4" />
+            </Link>
+          )}
+          <button
+            onClick={handleLogout}
+            className="rounded-md px-2 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+          >
+            Sign out
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="rounded-md px-2 py-1 text-xs text-muted-foreground transition hover:text-foreground"
-        >
-          Sign out
-        </button>
       </header>
 
       <main className="flex-1 px-4 py-4">{children}</main>
