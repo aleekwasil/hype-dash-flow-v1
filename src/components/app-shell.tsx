@@ -56,7 +56,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
 
       <main className="flex-1 px-4 py-4">{children}</main>
 
-      <nav className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 border-t border-border/50 bg-background/95 px-2 pb-[env(safe-area-inset-bottom,0.5rem)] pt-2 backdrop-blur-xl">
+      <nav className="fixed bottom-3 left-1/2 z-30 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 rounded-2xl border border-border/60 bg-background/80 px-2 pb-[env(safe-area-inset-bottom,0.4rem)] pt-2 shadow-card backdrop-blur-xl">
         <ul className="grid grid-cols-5">
           {TABS.map((t) => {
             const active = pathname === t.to || (t.to !== "/dashboard" && pathname.startsWith(t.to));
@@ -65,11 +65,21 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               <li key={t.to}>
                 <Link
                   to={t.to}
-                  className={`flex flex-col items-center gap-1 rounded-lg py-2 text-[11px] font-medium transition ${
+                  className={`relative flex flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition ${
                     active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <Icon className={`h-5 w-5 ${active ? "drop-shadow-[0_0_8px_oklch(0.62_0.24_295/0.8)]" : ""}`} />
+                  <span
+                    className={`grid h-9 w-9 place-items-center rounded-xl transition ${
+                      active ? "bg-primary/15 scale-105" : ""
+                    }`}
+                  >
+                    <Icon
+                      className={`h-5 w-5 transition ${
+                        active ? "drop-shadow-[0_0_8px_oklch(0.62_0.24_295/0.8)]" : ""
+                      }`}
+                    />
+                  </span>
                   {t.label}
                 </Link>
               </li>
