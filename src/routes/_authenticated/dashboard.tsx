@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import {
   Smartphone,
   Wifi,
@@ -10,7 +11,8 @@ import {
   ArrowRight,
   TrendingUp,
   ArrowDownLeft,
-  Sparkles,
+  Bell,
+  X,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { WalletCard } from "@/components/wallet-card";
@@ -70,6 +72,7 @@ function initials(name?: string | null, email?: string | null) {
 }
 
 function Dashboard() {
+  const qc = useQueryClient();
   const w = useServerFn(getWallet);
   const t = useServerFn(getTransactions);
   const p = useServerFn(hasPin);
@@ -79,45 +82,58 @@ function Dashboard() {
   const pin = useQuery({ queryKey: ["hasPin"], queryFn: () => p() });
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => pr() });
 
+  const [notifOpen, setNotifOpen] = useState(false);
+  // Placeholder — wire to admin broadcasts later
+  const notifications: Array<{ id: string; title: string; body: string; createdAt: string; read: boolean }> = [];
+  const unread = notifications.filter((n) => !n.read).length;
+
   const balance = Number(wallet.data?.balance ?? 0);
   const all = txns.data ?? [];
   const recent = all.slice(0, 5);
-
   const firstName = (profile.data?.full_name || "").split(" ")[0] || "there";
 
-  const totals = all.reduce(
-    (acc, r) => {
-      if (r.status !== "success") return acc;
-      const amt = Number(r.amount) || 0;
-      if (r.type === "wallet_funding") acc.deposits += amt;
-      else if (r.type === "airtime") acc.airtime += amt;
-      else if (r.type === "data") acc.data += amt;
-      return acc;
-    },
-    { deposits: 0, airtime: 0, data: 0 },
-  );
+  async function refreshWallet() {
+    await qc.invalidateQueries({ queryKey: ["wallet"] });
+  }
 
   return (
     <AppShell>
       {/* Header */}
-      <header className="mb-5 flex items-center justify-between">
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{greeting()},</p>
-          <h1 className="truncate font-display text-xl font-bold tracking-tight">
-            {firstName} 👋
-          </h1>
+      <header className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div
+            aria-hidden
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-bold text-primary-foreground shadow-glow ring-2 ring-background"
+          >
+            {initials(profile.data?.full_name, profile.data?.email)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">{greeting()},</p>
+            <h1 className="truncate font-display text-lg font-bold tracking-tight">
+              {firstName} 👋
+            </h1>
+          </div>
         </div>
-        <Link
-          to="/profile"
-          aria-label="Profile"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-bold text-primary-foreground shadow-glow ring-2 ring-background transition hover:scale-105"
+        <button
+          onClick={() => setNotifOpen(true)}
+          aria-label="Notifications"
+          className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border/60 bg-card/60 transition hover:bg-card"
         >
-          {initials(profile.data?.full_name, profile.data?.email)}
-        </Link>
+          <Bell className="h-5 w-5" />
+          {unread > 0 && (
+            <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </button>
       </header>
 
       {/* Wallet */}
-      <WalletCard balance={balance} walletId={profile.data?.id} />
+      <WalletCard
+        balance={balance}
+        onRefresh={refreshWallet}
+        refreshing={wallet.isFetching}
+      />
 
       {/* PIN nudge */}
       {pin.data && !pin.data.hasPin && (
@@ -156,44 +172,6 @@ function Dashboard() {
               <p className="text-xs text-muted-foreground">{q.desc}</p>
             </Link>
           ))}
-        </div>
-      </section>
-
-      {/* Promo banner */}
-      <section className="mt-6">
-        <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent p-4">
-          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent/20 blur-2xl" />
-          <div className="relative flex items-start gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-glow">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-display text-sm font-semibold">
-                Instant delivery, nationwide.
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Enjoy instant airtime and data delivery on all networks.
-              </p>
-              <Link
-                to="/airtime"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow transition hover:scale-[1.03] active:scale-95"
-              >
-                Buy now <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="mt-6">
-        <h2 className="mb-3 font-display text-sm font-semibold text-muted-foreground">
-          Your activity
-        </h2>
-        <div className="grid grid-cols-3 gap-2">
-          <StatCard label="Deposits" amount={totals.deposits} icon={ArrowDownLeft} tone="success" />
-          <StatCard label="Airtime" amount={totals.airtime} icon={Smartphone} tone="primary" />
-          <StatCard label="Data" amount={totals.data} icon={Wifi} tone="accent" />
         </div>
       </section>
 
@@ -265,35 +243,63 @@ function Dashboard() {
           })}
         </ul>
       </section>
-    </AppShell>
-  );
-}
 
-function StatCard({
-  label,
-  amount,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  amount: number;
-  icon: React.ComponentType<{ className?: string }>;
-  tone: "success" | "primary" | "accent";
-}) {
-  const toneClass =
-    tone === "success"
-      ? "text-success bg-success/10"
-      : tone === "primary"
-      ? "text-primary bg-primary/10"
-      : "text-accent bg-accent/10";
-  return (
-    <div className="rounded-2xl border border-border/50 bg-card/60 p-3">
-      <div className={`grid h-8 w-8 place-items-center rounded-lg ${toneClass}`}>
-        <Icon className="h-4 w-4" />
-      </div>
-      <p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="truncate font-display text-sm font-bold">{formatNaira(amount)}</p>
-    </div>
+      {/* Notifications drawer (UI only) */}
+      {notifOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
+          onClick={() => setNotifOpen(false)}
+        >
+          <div
+            className="w-full max-w-md animate-fade-in rounded-t-3xl border border-border/60 bg-card p-5 shadow-card sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-base font-bold">Notifications</h3>
+                <p className="text-xs text-muted-foreground">
+                  Updates and announcements from HypeData
+                </p>
+              </div>
+              <button
+                onClick={() => setNotifOpen(false)}
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            {notifications.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border/60 bg-background/50 p-8 text-center">
+                <Bell className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-medium">You're all caught up</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  New announcements will appear here.
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {notifications.map((n) => (
+                  <li
+                    key={n.id}
+                    className="rounded-xl border border-border/50 bg-background/60 p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold">{n.title}</p>
+                      {!n.read && <span className="h-2 w-2 rounded-full bg-primary" />}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{n.body}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {formatDate(n.createdAt)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+    </AppShell>
   );
 }
 

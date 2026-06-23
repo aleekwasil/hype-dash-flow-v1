@@ -1,12 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Shield, LogOut } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { getProfile, updateProfile, isAdmin } from "@/lib/profile.functions";
 import { hasPin } from "@/lib/pin.functions";
 
@@ -20,10 +22,19 @@ function Profile() {
   const u = useServerFn(updateProfile);
   const h = useServerFn(hasPin);
   const a = useServerFn(isAdmin);
+  const router = useRouter();
+  const qc = useQueryClient();
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => g() });
   const pin = useQuery({ queryKey: ["hasPin"], queryFn: () => h() });
   const admin = useQuery({ queryKey: ["isAdmin"], queryFn: () => a() });
+
+  async function handleLogout() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    router.navigate({ to: "/auth", replace: true });
+  }
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -71,11 +82,33 @@ function Profile() {
         </Link>
 
         {admin.data?.isAdmin && (
-          <div className="rounded-xl border border-accent/40 bg-accent/10 p-4 text-sm">
-            <p className="font-medium text-accent">Admin access</p>
-            <p className="text-xs text-muted-foreground">You have admin privileges. Admin dashboard coming soon.</p>
-          </div>
+          <Link
+            to="/admin"
+            className="flex items-center justify-between rounded-xl border border-accent/40 bg-accent/10 p-4 text-sm"
+          >
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5 text-accent" />
+              <div>
+                <p className="font-medium text-accent">Admin dashboard</p>
+                <p className="text-xs text-muted-foreground">Manage users, wallets and transactions</p>
+              </div>
+            </div>
+            <span className="text-xs text-accent">Open →</span>
+          </Link>
         )}
+
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center justify-between rounded-xl border border-border/50 bg-card/50 p-4 text-left transition hover:border-destructive/40 hover:bg-destructive/5"
+        >
+          <div className="flex items-center gap-3">
+            <LogOut className="h-5 w-5 text-destructive" />
+            <div>
+              <p className="font-medium">Sign out</p>
+              <p className="text-xs text-muted-foreground">End your current session</p>
+            </div>
+          </div>
+        </button>
       </div>
     </AppShell>
   );
