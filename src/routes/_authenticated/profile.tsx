@@ -22,10 +22,19 @@ function Profile() {
   const u = useServerFn(updateProfile);
   const h = useServerFn(hasPin);
   const a = useServerFn(isAdmin);
+  const router = useRouter();
+  const qc = useQueryClient();
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => g() });
   const pin = useQuery({ queryKey: ["hasPin"], queryFn: () => h() });
   const admin = useQuery({ queryKey: ["isAdmin"], queryFn: () => a() });
+
+  async function handleLogout() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    router.navigate({ to: "/auth", replace: true });
+  }
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
