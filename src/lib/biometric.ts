@@ -175,6 +175,12 @@ export async function verifyBiometric(): Promise<StoredCredential> {
   const stored = getStoredCredential();
   if (!stored) throw new Error("No biometric credential is set up on this device.");
   if (!biometricSupported()) throw new Error("Biometric authentication is not supported on this device.");
+  if (!webauthnGetAllowed()) {
+    throw new Error(
+      "Biometric login is blocked in this preview window. Open the app in a new browser tab to use it.",
+    );
+  }
+
 
   const assertion = (await navigator.credentials.get({
     publicKey: {
