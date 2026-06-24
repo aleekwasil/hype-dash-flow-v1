@@ -18,6 +18,7 @@ import {
   getStoredCredential,
   enrollBiometric,
   clearStoredCredential,
+  webauthnCreateAllowed,
 } from "@/lib/biometric";
 
 export const Route = createFileRoute("/_authenticated/profile")({
