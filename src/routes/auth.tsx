@@ -72,12 +72,15 @@ function AuthPage() {
 
   useEffect(() => {
     let cancelled = false;
-    platformAuthenticatorAvailable().then((ok) => { if (!cancelled) setBioAvailable(ok); });
+    platformAuthenticatorAvailable().then((ok) => {
+      if (!cancelled) setBioAvailable(ok && webauthnGetAllowed());
+    });
     return () => { cancelled = true; };
   }, []);
 
   const strength = useMemo(() => passwordStrength(password), [password]);
-  const canBiometricLogin = bioAvailable && !!storedBio;
+  const canBiometricLogin = bioAvailable && !!storedBio && webauthnGetAllowed();
+  const canBiometricEnroll = bioAvailable && webauthnCreateAllowed();
 
   async function finishLogin() {
     router.invalidate();
