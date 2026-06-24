@@ -130,6 +130,11 @@ export async function enrollBiometric(opts: {
   displayName?: string;
 }): Promise<StoredCredential> {
   if (!biometricSupported()) throw new Error("Biometric authentication is not supported on this device.");
+  if (!webauthnCreateAllowed()) {
+    throw new Error(
+      "Biometric setup is blocked in this preview window. Open the app in a new browser tab (or on your deployed site) to enable it.",
+    );
+  }
 
   const cred = (await navigator.credentials.create({
     publicKey: {
