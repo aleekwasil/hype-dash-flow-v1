@@ -188,10 +188,10 @@ function AuthPage() {
         <header className="animate-fade-in flex flex-col items-center text-center">
           <BrandLogo size={56} className="shadow-glow" />
           <h1 className="mt-5 font-display text-2xl font-bold tracking-tight sm:text-3xl text-balance">
-            Welcome to {BRAND.name}
+            Welcome to Nigeria's Fastest Data &amp; Airtime Hub
           </h1>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground sm:text-base">
-            Airtime, data and wallet — fast and secure.
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground sm:text-base text-balance">
+            Buy Airtime and Data in just a little seconds.
           </p>
         </header>
 
